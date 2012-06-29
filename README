@@ -1,0 +1,67 @@
+As of the mail of June 2012, I am allowed to relicense gPb as BSD and integrate it in OpenCV
+
+gPb licensing / OpenCV integration
+From:	Michael Maire <mmaire@caltech.edu>
+To:	Vincent Rabaud <vrabaud@willowgarage.com>
+CC:	Jitendra Malik <malik@eecs.berkeley.edu>, Charless Fowlkes <fowlkes@ics.uci.edu>, Pablo Arbelaez <arbelaez@eecs.berkeley.edu>, David Martin <david.r.martin@gmail.com>
+Date:	Monday 12:54:37 PM
+Hi Vincent,
+
+The current gPb-UCM code consists of some components distributed under
+the GPL and some components distributed under the AGPL:
+http://www.gnu.org/copyleft/gpl.html
+http://www.gnu.org/licenses/agpl.html
+
+We would like to make the following licensing arrangements to allow
+integration into OpenCV:
+
+(1) We give you, the OpenCV team, and Willow Garage permission to take 
+    our current gPb-UCM code, use whatever parts of it (or all of it) 
+    that you like, and distribute the result as part of OpenCV under
+    the BSD license ( http://opensource.org/licenses/bsd-license.php ).
+
+(2) OpenCV (and the gPb-UCM implementation within it) are distributed 
+    under the BSD license.
+
+(3) We will continue to distribute our own gPb-UCM code under the 
+    current GPL/AGPL.
+
+Essentially, we are taking a snapshot of the code and releasing it to
+you under the BSD license.
+
+Point (3) above is made to indicate that we intend to release our own
+future enhancements under the GPL/AGPL and not under the BSD license.
+You would need to negotiate separately for permission to include such
+work in OpenCV.
+
+Also note that we are not changing the license on any of our own code
+which uses gPb in a larger project.  For example, I have written code
+that combines gPb with object detection and released the result under
+the AGPL.  At this time, I am NOT releasing this additional code with a
+BSD license.
+
+What we are granting you permission to distribute under the BSD license
+is our code for the implementation of gPb-UCM corresponding to the work
+described in this paper:
+
+Contour Detection and Hierarchical Image Segmentation
+P. Arbelaez, M. Maire, C. Fowlkes and J. Malik.
+IEEE TPAMI, Vol. 33, No. 5, pp. 898-916, May 2011
+http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/papers/amfm_pami2010.pdf
+
+The code will be that found here, with a few pending improvements by
+Pablo:
+http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/BSR_source.tgz
+
+All contributors to this code are cc'd to this email and all have agreed
+to the licensing arrangement outlined above.  If anyone has additional
+questions, please email me.
+
+Turning to practical matters, Pablo and I will coordinate with Vincent
+on the technical details of integrating gPb into OpenCV.  If anyone else
+would also like to be a part of this process, please let me know.
+Otherwise, we will leave you out of the technical discussion unless your
+advice is specifically required.
+
+Best,
+Michael
