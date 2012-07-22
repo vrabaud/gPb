@@ -71,7 +71,22 @@ end
 gPb = max(gPb_orient, [], 3);
 
 gPb_thin = gPb .* (mPb>0.05);
-gPb_thin = gPb_thin .* bwmorph(gPb_thin, 'skel', inf);
+
+% The following line has been replaced as it crashes on octave 3.2
+%gPb_thin = gPb_thin .* bwmorph(gPb_thin, 'skel', inf);
+
+SE = ones(3,3);
+img = gPb_thin
+bwskel = zeros(size(img,1),size(img,2));
+while nnz(img)
+  eroded = imerode(img,SE);
+  temp = imdilate(eroded,SE);
+  temp = img - temp;
+  bwskel = bwskel | temp;
+  img = eroded
+end
+
+gPb_thin = gPb_thin .* bwskel;
 
 if ~strcmp(outFile,''), save(outFile,'gPb_thin', 'gPb_orient','textons'); end
 
