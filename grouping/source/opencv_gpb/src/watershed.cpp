@@ -73,6 +73,7 @@ namespace
         {
           regions.at<int>(y, x) = 1;
           // Make sure that ridges are not local extrema
+          queue.push_back(std::pair<int, int>(x, y));
           while (!queue.empty())
           {
             int x2 = queue.front().first, y2 = queue.front().second;
