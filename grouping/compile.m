@@ -82,7 +82,7 @@ cd(savepwd);
 % process custom mex files
 cd('source/opencv_gpb/');
 
-mkoctfile --mex ./mex/watershed.cpp -I./src -I../buildW/util/ -I../buildW -I/opt/ros/fuerte/include -L../../lib -L/opt/ros/fuerte/lib -lopencv_gpb -lopencv_core -DCV_MINOR_VERSION=2
+mkoctfile --mex ./mex/watershed.cpp ./mex/MxArray.cpp -I./src -I../buildW/util/ -I../buildW -I/opt/ros/fuerte/include -L../../lib -L/opt/ros/fuerte/lib -lopencv_gpb -lopencv_core -lopencv_imgproc -L../build -lbuildW -lopencv_gpb
 
 system('mv *.mex ../../lib')
 cd(savepwd);

@@ -33,13 +33,46 @@
  *
  */
 
+#include <iostream>
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include "watershed.h"
 
 namespace cv
 {
   void
-  watershed(const cv::Mat & image, cv::Mat & regions)
+  watershedFull(const cv::Mat & image, cv::Mat & regions)
   {
+    // Find the local minima
+    regions = cv::Mat::zeros(image.rows, image.cols, CV_32S);
+    int index = 1;
+    int window_size = 10;
+    for(int y = window_size; y < image.rows-window_size; ++y)
+      for(int x = window_size; x < image.cols-window_size; ++x) {
+          bool local_minimum = true;
+          for(int yy=y-window_size; yy<=y+window_size; ++yy)
+            for(int xx=x-window_size; xx<=x+window_size; ++xx) {
+              if ((yy==y) && (xx==x))
+                continue;
+              if (image.at<unsigned char>(yy,xx) < image.at<unsigned char>(y,x))
+                local_minimum = false;
+            }
+          if (local_minimum) {
+            regions.at<int>(y,x) = index;
+            ++index;
+          }
+        }
 
+    // Apply watershed to those
+    cv::Mat image3, imageu;
+    if (image.channels()==1) {
+      image.convertTo(imageu,CV_8U);
+      cv::cvtColor(imageu, image3, CV_GRAY2RGB);
+    } else {
+      image.convertTo(imageu,CV_8UC3);
+      image3 = imageu;
+    }
+
+    cv::watershed(image3, regions);
   }
 }

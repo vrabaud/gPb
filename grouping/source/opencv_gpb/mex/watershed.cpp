@@ -52,7 +52,7 @@
 #include "ic.hh"
 #include "mex.h"
 
-#include "mexopencv.hpp"
+#include "MxArray.hpp"
 #include "watershed.h"
 
 using namespace std;
@@ -64,6 +64,6 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs,const mxArray *prhs[])
     if (nlhs != 1) mexErrMsgTxt("OUTPUT: [watershed segmentation] ");
 
     cv::Mat input = MxArray(prhs[0]).toMat(), output;
-    watershed(input, output);
+    watershedFull(input, output);
     plhs[0] = MxArray(output);
 }
