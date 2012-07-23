@@ -34,9 +34,74 @@
  */
 
 #include <iostream>
+#include <list>
+
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "watershed.h"
+
+namespace
+{
+  template<typename T>
+  void
+  findLocalMinima(const cv::Mat_<T> &image, cv::Mat & regions)
+  {
+    regions = cv::Mat::ones(image.rows, image.cols, CV_32S);
+    int window_size = 1;
+    std::list<std::pair<int, int> > queue;
+    for (int y = window_size; y < image.rows - window_size; ++y)
+      for (int x = window_size; x < image.cols - window_size; ++x)
+      {
+        // If we already know it's not a maximum
+        if (!regions.at<int>(y, x))
+          continue;
+        bool local_minimum = true;
+        for (int yy = y - window_size; yy <= y + window_size; ++yy)
+          for (int xx = x - window_size; xx <= x + window_size; ++xx)
+          {
+            if ((yy == y) && (xx == x))
+              continue;
+            if (image(yy, xx) < image(y, x))
+            {
+              local_minimum = false;
+              break;
+            }
+            else if (image(yy, xx) == image(y, x))
+              queue.push_back(std::pair<int, int>(xx, yy));
+          }
+        if (local_minimum)
+        {
+          regions.at<int>(y, x) = 1;
+          // Make sure that ridges are not local extrema
+          while (!queue.empty())
+          {
+            int x2 = queue.front().first, y2 = queue.front().second;
+            for (int yy = y2 - window_size; yy <= y2 + window_size; ++yy)
+              for (int xx = x2 - window_size; xx <= x2 + window_size; ++xx)
+              {
+                if ((yy == y2) && (xx == x2))
+                  continue;
+                if ((image(yy, xx) == image(y, x)) && regions.at<int>(yy, xx))
+                {
+                  regions.at<int>(yy, xx) = 0;
+                  queue.push_back(std::pair<int, int>(xx, yy));
+                }
+              }
+            queue.pop_front();
+          }
+          queue.clear();
+        }
+        else
+          regions.at<int>(y, x) = 0;
+      }
+    // Set a proper index to every local extremum
+    int index = 1;
+    for (int y = window_size; y < image.rows - window_size; ++y)
+      for (int x = window_size; x < image.cols - window_size; ++x)
+        if (regions.at<int>(y, x))
+          regions.at<int>(y, x) = index++;
+  }
+}
 
 namespace cv
 {
@@ -44,35 +109,34 @@ namespace cv
   watershedFull(const cv::Mat & image, cv::Mat & regions)
   {
     // Find the local minima
-    regions = cv::Mat::zeros(image.rows, image.cols, CV_32S);
-    int index = 1;
-    int window_size = 10;
-    for(int y = window_size; y < image.rows-window_size; ++y)
-      for(int x = window_size; x < image.cols-window_size; ++x) {
-          bool local_minimum = true;
-          for(int yy=y-window_size; yy<=y+window_size; ++yy)
-            for(int xx=x-window_size; xx<=x+window_size; ++xx) {
-              if ((yy==y) && (xx==x))
-                continue;
-              if (image.at<unsigned char>(yy,xx) < image.at<unsigned char>(y,x))
-                local_minimum = false;
-            }
-          if (local_minimum) {
-            regions.at<int>(y,x) = index;
-            ++index;
-          }
-        }
+    switch (image.depth())
+    {
+      case CV_64F:
+      {
+        const cv::Mat_<double> & image_t = cv::Mat_<double>(image);
+        findLocalMinima(image_t, regions);
+        break;
+      }
+      default:
+        std::cerr << "Type not implemented in watershed: " << image.depth() << std::endl;
+    }
 
     // Apply watershed to those
     cv::Mat image3, imageu;
-    if (image.channels()==1) {
-      image.convertTo(imageu,CV_8U);
+    if (image.channels() == 1)
+    {
+      image.convertTo(imageu, CV_8U);
       cv::cvtColor(imageu, image3, CV_GRAY2RGB);
-    } else {
-      image.convertTo(imageu,CV_8UC3);
+    }
+    else
+    {
+      image.convertTo(imageu, CV_8UC3);
       image3 = imageu;
     }
 
     cv::watershed(image3, regions);
+    // OpenCV convention: -1 for boundaries, zone index start a 0
+    // Matlab convention: 0 for boundaries, zone index start a 1
+    regions = regions + 1;
   }
 }
