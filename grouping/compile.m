@@ -88,6 +88,17 @@ system('mv *.mex ../../lib')
 cd(savepwd);
 
 
+% process ucm
+cd('source/ucm/');
+
+mkoctfile --mex ./ucm_mean_pb.cpp -L../../lib -lopencv_gpb
+
+system('mv *mex ../../lib')
+cd(savepwd);
+
+
+
+
 
 disp('..................................Done Compiling');
 
