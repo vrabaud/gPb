@@ -1,3 +1,9 @@
+To run, go to the grouping folder and open up octave (or Matlab, but I have not tried on matlab yet). The run:
+
+addpath(genpath('./'))
+compile
+example
+
 As of the mail of June 2012, I am allowed to relicense gPb as BSD and integrate it in OpenCV
 
 gPb licensing / OpenCV integration
