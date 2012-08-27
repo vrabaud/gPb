@@ -29,8 +29,8 @@ end
 % prepare pb for ucm
 ws_wt2 = double(super_contour_4c(ws_wt));
 ws_wt2 = clean_watersheds(ws_wt2);
-labels2 = bwlabel(ws_wt2 == 0, 8);
-labels = labels2(2:2:end, 2:2:end) - 1; % labels begin at 0 in mex file.
+labels2 = bwlabel(ws_wt2 == 0, 4);
+labels = labels2(2:2:end, 2:2:end);
 ws_wt2(end+1, :) = ws_wt2(end, :);
 ws_wt2(:, end+1) = ws_wt2(:, end);
 
