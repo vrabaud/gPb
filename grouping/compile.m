@@ -49,9 +49,9 @@ cd('source/gpb_src/');
 %mkoctfile --mex ./matlab/recognition/mex_clusterer.cc  -I./include
 
 %mkoctfile --mex ./matlab/segmentation/mex_contour.cc  -I./include
-%mkoctfile --mex ./matlab/segmentation/mex_contour_sides.cc  -I./include
+mkoctfile --mex ./matlab/segmentation/mex_contour_sides.cc  -I./include
 %mkoctfile --mex ./matlab/segmentation/mex_line_inds.cc  -I./include
-%mkoctfile --mex ./matlab/segmentation/mex_nonmax_oriented.cc  -I./include
+mkoctfile --mex ./matlab/segmentation/mex_nonmax_oriented.cc  -I./include
 %mkoctfile --mex ./matlab/segmentation/mex_oe.cc  -I./include
 %mkoctfile --mex ./matlab/segmentation/mex_pb.cc  -I./include
 mkoctfile --mex ./matlab/segmentation/mex_pb_parts_final_selected.cc -I./include -L../../lib -lopencv_gpb

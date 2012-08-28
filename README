@@ -1,8 +1,9 @@
 First:
 
 cd grouping/source
-mkdir build && cd build && cmake ../ && mv *.so ../../lib
+mkdir build && cd build && cmake ../ && make && mv *.so ../../lib
 cd ../..
+export LD_LIBRARY_PATH=$(pwd)/lib:/usr/lib
 
 To run, go to the grouping folder and open up octave (or Matlab, but I have not tried on matlab yet). The run:
 
