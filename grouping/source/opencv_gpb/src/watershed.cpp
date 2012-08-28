@@ -44,10 +44,9 @@ namespace
 {
   template<typename T>
   void
-  findLocalMinima(const cv::Mat_<T> &image, cv::Mat & regions)
+  findLocalMinima(const cv::Mat_<T> &image, int window_size, cv::Mat & regions)
   {
     regions = cv::Mat::ones(image.rows, image.cols, CV_32S);
-    int window_size = 1;
     std::list<std::pair<int, int> > queue;
     for (int y = window_size; y < image.rows - window_size; ++y)
       for (int x = window_size; x < image.cols - window_size; ++x)
@@ -107,7 +106,7 @@ namespace
 namespace cv
 {
   void
-  watershedFull(const cv::Mat & image, cv::Mat & regions)
+  watershedFull(const cv::Mat & image, int window_size, cv::Mat & regions)
   {
     // Find the local minima
     switch (image.depth())
@@ -115,7 +114,7 @@ namespace cv
       case CV_64F:
       {
         const cv::Mat_<double> & image_t = cv::Mat_<double>(image);
-        findLocalMinima(image_t, regions);
+        findLocalMinima(image_t, window_size, regions);
         break;
       }
       default:

@@ -64,6 +64,7 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs,const mxArray *prhs[])
     if (nlhs != 1) mexErrMsgTxt("OUTPUT: [watershed segmentation] ");
 
     cv::Mat input = MxArray(prhs[0]).toMat(), output;
-    watershedFull(input, output);
+    int window_size = 1;
+    watershedFull(input, window_size, output);
     plhs[0] = MxArray(output);
 }
