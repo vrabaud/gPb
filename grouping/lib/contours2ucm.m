@@ -24,15 +24,20 @@ if ~strcmp(fmt,'imageSize') && ~strcmp(fmt,'doubleSize'),
 end
 
 % create finest partition and transfer contour strength
-[ws_wt] = create_finest_partition(pb_oriented);
+[ws_wt] = create_finest_partition(pb_oriented);%figure;imshow(ws_wt);
+ws_wt8 = to_8(rot90(to_8(rot90(ws_wt,1)),-1)); %figure;imshow(ws_wt8);
 
 % prepare pb for ucm
-ws_wt2 = double(super_contour_4c(ws_wt));
+ws_wt2 = double(super_contour_4c(ws_wt8));
 ws_wt2 = clean_watersheds(ws_wt2);
 labels2 = bwlabel(ws_wt2 == 0, 8);
 labels = labels2(2:2:end, 2:2:end) - 1; % labels begin at 0 in mex file.
+labels(end, :) = labels(end-1, :);
+labels(:, end) = labels(:, end-1);
 ws_wt2(end+1, :) = ws_wt2(end, :);
 ws_wt2(:, end+1) = ws_wt2(:, end);
+labels
+
 
 % compute ucm with mean pb.
 super_ucm = double(ucm_mean_pb(ws_wt2, labels));
@@ -48,10 +53,23 @@ end
 
 %%
 
+function [seg8] = to_8(seg4)
+
+seg8 = seg4;
+for i = 1 : rows(seg4)-1,
+	for j = 1 : columns(seg4)-1,
+		if (seg8(i,j) > 0 && seg8(i+1, j+1) > 0 && seg8(i,j+1) == 0 && seg8(i+1,j) == 0),
+			seg8(i,j+1) = ( seg8(i,j) + seg8(i+1,j+1) )/2;	
+		end
+	end
+end
+
+
+
 function [ws_wt] = create_finest_partition(pb_oriented)
 
 pb = max(pb_oriented,[],3);
-ws = watershed(pb);
+ws = watershed(pb*255);
 ws_bw = (ws == 0);
 
 contours = fit_contour(double(ws_bw));
@@ -116,7 +134,7 @@ function [ws_clean] = clean_watersheds(ws)
 
 ws_clean = ws;
 
-c = bwmorph(ws_clean == 0, 'clean', inf);
+c = bwmorph(ws_clean == 0, 'clean', 1);
 
 artifacts = ( c==0 & ws_clean==0 );
 R = regionprops(bwlabel(artifacts), 'PixelList');
