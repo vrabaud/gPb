@@ -27,15 +27,15 @@ end
 [ws_wt] = create_finest_partition(pb_oriented);
 
 % prepare pb for ucm
-% ws_wt2 = double(super_contour_4c(ws_wt));
-% ws_wt2 = clean_watersheds(ws_wt2);
-labels = bwlabel(ws_wt == 0, 4);
-% labels = labels2(2:2:end, 2:2:end);
-% ws_wt2(end+1, :) = ws_wt2(end, :);
-% ws_wt2(:, end+1) = ws_wt2(:, end);
+ws_wt2 = double(super_contour_4c(ws_wt));
+ws_wt2 = clean_watersheds(ws_wt2);
+labels2 = bwlabel(ws_wt2 == 0, 8);
+labels = labels2(2:2:end, 2:2:end) - 1; % labels begin at 0 in mex file.
+ws_wt2(end+1, :) = ws_wt2(end, :);
+ws_wt2(:, end+1) = ws_wt2(:, end);
 
 % compute ucm with mean pb.
-super_ucm = double(ucm_mean_pb(ws_wt, labels));
+super_ucm = double(ucm_mean_pb(ws_wt2, labels));
 
 % output
 super_ucm = normalize_output(super_ucm); % ojo
@@ -50,8 +50,8 @@ end
 
 function [ws_wt] = create_finest_partition(pb_oriented)
 
-pb = max(pb_oriented,[],3);figure;imshow(pb);
-ws = watershed(pb*255);figure;imshow(double(ws));
+pb = max(pb_oriented,[],3);
+ws = watershed(pb);
 ws_bw = (ws == 0);
 
 contours = fit_contour(double(ws_bw));
