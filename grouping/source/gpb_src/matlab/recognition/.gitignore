@@ -1,7 +1,0 @@
-Makefile
-Rules.make
-*.d
-*.do
-*.o
-*.mexglx
-*.mexa64
