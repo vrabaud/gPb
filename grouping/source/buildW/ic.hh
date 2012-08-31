@@ -20,7 +20,7 @@
 #ifndef IC_HH
 #define IC_HH
 
-#include "image.hh"
+#include "array.hh"
 
 //
 // intervening contour computation
@@ -30,8 +30,8 @@ namespace Group
   // data types for storing sparse ic info
   struct DualLattice
   {
-    Util::Image H;
-    Util::Image V;
+    Util::Array2D<float> H;
+    Util::Array2D<float> V;
     int width;
     int height;
   };

@@ -28,29 +28,13 @@ class SMatrix
   public:
     SMatrix(int n, int* nz, int** col, double** values);
     ~SMatrix();
-    SMatrix(FILE* fp);
-    void dump(FILE* fp);
-
-    double computeNCut(const double* rowSum, const Util::Array1D<int> membership, const int nsegs) const;
 
     void symmetrize();
-
-    int getNNZ() const;
-    double* getRowSum() const;
-
-    void normalizedLaplacian(const double* rowSum);        //in place, converts into norm laplacian 
-    void undoNormalizedLaplacian(const double* rowSum);    //in place, converts back into original matrix
 
     int n;
     int** col;
     int* nz;
     double** values;
-
-    void mvmul(const double* a, double* b) const;
-    void mvmul(const double* a1, const double* a2, double* b1, double* b2) const;
-    void mvmul(const double* a1, const double* a2, const double* a3, const double* a4, 
-               double* b1, double* b2, double* b3, double* b4) const;
-
 };
 
 #endif

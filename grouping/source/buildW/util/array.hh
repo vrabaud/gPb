@@ -20,7 +20,6 @@
 #define ARRAY_HH
 
 #include <assert.h>
-#include "message.hh"
 
 // TODO: 
 // - replace asserts with exceptions?
@@ -84,7 +83,7 @@ namespace Util
           {
             _delete ();
             _alloc (n);
-            Message::debug(String("Array1D::resized to %d",_n),5);
+            //Message::debug(String("Array1D::resized to %d",_n),5);
           }
         }
 
@@ -254,7 +253,7 @@ DEFOP(/=)
           {
             _delete ();
             _alloc (d0, d1);
-            Message::debug(String("Array2D::resized to %d %d",d0,d1),5);
+            //Message::debug(String("Array2D::resized to %d %d",d0,d1),5);
           }
         }
 
@@ -440,7 +439,7 @@ DEFOP(/=)
           {
             _delete ();
             _alloc (d0, d1, d2);
-            Message::debug(String("Array3D::resized to %d %d %d",d0,d1,d2),5);
+            //Message::debug(String("Array3D::resized to %d %d %d",d0,d1,d2),5);
           }
         }
 
@@ -642,7 +641,7 @@ DEFOP(/=)
           {
             _delete ();
             _alloc (d0, d1, d2, d3);
-            Message::debug(String("Array4D::resized to %d %d %d %d",d0,d1,d2,d3),5);
+            //Message::debug(String("Array4D::resized to %d %d %d %d",d0,d1,d2,d3),5);
           }
         }
 

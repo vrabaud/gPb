@@ -20,11 +20,8 @@
 #include <iostream>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "smatrix.hh"
-#include "util.hh"
-#include "string.hh"
-#include "exception.hh"
-#include "message.hh"
 
 SMatrix::SMatrix (int n, int* nz, int** col, double** values)
 {
@@ -35,26 +32,8 @@ SMatrix::SMatrix (int n, int* nz, int** col, double** values)
     int nnz = 0;
     for (int i = 0; i < n; i++)
       nnz += nz[i];
-    Util::Message::debug(Util::String("creating sparse matrix with %d nonzero entries",nnz));
-}
-
-SMatrix::SMatrix(FILE* fp) 
-{
-  size_t st;
-  st = fread(&n,sizeof(int),1,fp);
-  int nnz;
-  st =fread(&nnz,sizeof(int),1,fp);
-  nz = new int[n];
-  col = new int*[n];
-  values = new double*[n];
-
-  for (int row = 0; row < n; row++) {
-    st =fread(&nz[row],sizeof(int),1,fp);
-    col[row] = new int[nz[row]]; 
-    values[row] = new double[nz[row]]; 
-    st =fread(values[row],sizeof(double),nz[row],fp);
-    st =fread(col[row],sizeof(int),nz[row],fp);
-  }
+    printf("sparse matrix");//TODO what do with std spam?
+    //Util::Message::debug(Util::String("creating sparse matrix with %d nonzero entries",nnz));
 }
 
 SMatrix::~SMatrix ()
@@ -68,29 +47,6 @@ SMatrix::~SMatrix ()
   delete values;
   delete nz;
 }
-
-void 
-SMatrix::dump(FILE* fp) 
-{
-  size_t st;
-  st = fwrite(&n,sizeof(int),1,fp);
-  int nnz = getNNZ();
-  st = fwrite(&nnz,sizeof(int),1,fp);
-  for (int row = 0; row < n; row++) {
-    st = fwrite(&nz[row],sizeof(int),1,fp);
-    st = fwrite(values[row],sizeof(double),nz[row],fp);
-    st = fwrite(col[row],sizeof(int),nz[row],fp);
-  }
-}
-
-int SMatrix::getNNZ() const
-{
-  int nnz = 0;
-  for (int i = 0; i < n; i++)
-    nnz += nz[i];
-  return nnz;
-}
-
 
 void SMatrix::symmetrize()
 {
@@ -115,153 +71,4 @@ void SMatrix::symmetrize()
     }
   }  
 }
-
-
-double*
-SMatrix::getRowSum () const
-{
-    double* rowSum = new double[n];
-    memset(rowSum,0,n*sizeof(double));
-    Util::Message::debug("computing row sum");
-    for (int row = 0; row < n; row++) {
-      double sum = 0;;
-      for (int j = 0; j < nz[row]; j++) {
-        sum += values[row][j];
-      }
-      rowSum[row] = sum;
-    }
-    return rowSum;
-}
-
-double
-SMatrix::computeNCut(const double* rowSum, const Util::Array1D<int> membership, const int nsegs) const
-{
-  if (nsegs > 1)
-  {
-    double* num = new double[nsegs];
-    double* den = new double[nsegs];
-    memset(num,0,nsegs*sizeof(double));
-    memset(den,0,nsegs*sizeof(double));
-    for (int row = 0; row < n; row++)
-    {
-      int segi = membership(row);
-      den[segi] += rowSum[row]; 
-      for (int j = 0; j < nz[row]; j++)
-      {
-        int segj = membership(col[row][j]);
-        if (segi == segj)
-        {
-          num[segi] += values[row][j]; 
-        }
-      }
-    }
-
-    double assoc = 0;
-    for (int s = 0; s < nsegs; s++)
-    {
-      if (den[s] > 0)
-      {
-        assoc += (num[s] / den[s]); 
-      }
-    }
-    delete num;
-    delete den;
-    return (1 - ((1/(double)nsegs)*assoc));
-  }
-  else
-  {
-    Util::Message::debug("only 1 segment!!");
-    return 0;
-  }
-}
-
-
-void
-SMatrix::normalizedLaplacian(const double* rowSum) 
-{
-    double* isrd = new double[n];
-    for (int i = 0; i < n; i++) {
-      isrd[i] = 1.0 / sqrt(rowSum[i]);
-    }
-    Util::Message::debug("scaling rows");
-    for (int row = 0; row < n; row++) {
-      double isrdrow = isrd[row];
-      for (int j = 0; j < nz[row]; j++) {
-        values[row][j] = isrdrow * values[row][j] * isrd[col[row][j]];
-      }
-    }
-    delete[] isrd;
-}
-
-void
-SMatrix::undoNormalizedLaplacian(const double* rowSum) 
-{
-    double* isrd = new double[n];
-    for (int i = 0; i < n; i++) {
-      isrd[i] = sqrt(rowSum[i]);
-    }
-    Util::Message::debug("scaling rows");
-    for (int row = 0; row < n; row++) {
-      double isrdrow = isrd[row];
-      for (int j = 0; j < nz[row]; j++) {
-        values[row][j] = isrdrow * values[row][j] * isrd[col[row][j]];
-      }
-    }
-    delete[] isrd;
-}
-
-void 
-SMatrix::mvmul (const double* a, double* b) const
-{
-    for (int row = 0; row < n; row++) {
-      double bval = 0;
-      for (int j = 0; j < nz[row]; j++) {
-          bval += a[col[row][j]] * values[row][j];
-      }
-      b[row] = bval;
-    }
-}
-
-void 
-SMatrix::mvmul (const double* a1, const double* a2, 
-			double* b1, double* b2) const
-{
-    for (int row = 0; row < n; row++) {
-      double bval1 = 0;
-      double bval2 = 0;
-      for (int j = 0; j < nz[row]; j++) {
-          double v = values[row][j];
-          bval1 += a1[col[row][j]] * v;
-          bval2 += a2[col[row][j]] * v;
-      }
-      b1[row] = bval1;
-      b2[row] = bval2;
-    }
-}
-
-void 
-SMatrix::mvmul (const double* a1, const double* a2, 
-			const double* a3, const double* a4, 
-			double* b1, double* b2,
-			double* b3, double* b4) const
-{
-    for (int row = 0; row < n; row++) {
-      double bval1 = 0;
-      double bval2 = 0;
-      double bval3 = 0;
-      double bval4 = 0;
-      for (int j = 0; j < nz[row]; j++) {
-          double v = values[row][j];
-          bval1 += a1[col[row][j]] * v;
-          bval2 += a2[col[row][j]] * v;
-          bval3 += a3[col[row][j]] * v;
-          bval4 += a4[col[row][j]] * v;
-      }
-      b1[row] = bval1;
-      b2[row] = bval2;
-      b3[row] = bval3;
-      b4[row] = bval4;
-    }
-}
-
 

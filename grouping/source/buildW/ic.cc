@@ -27,8 +27,6 @@
 #include <ctype.h>
 #include <memory.h>
 
-#include "util.hh"
-#include "image.hh"
 #include "array.hh"
 
 #include "ic.hh"
@@ -46,10 +44,11 @@ namespace Group
     Util::Array1D<PointIC> adj;
     int count = 0;
 
-    Util::Message::startBlock(boundaries.width,"computing support");
+    //Util::Message::startBlock(boundaries.width,"computing support");
+    printf("computing support"); //TODO messages where when if any?
     for (int x = 0; x < boundaries.width; x++)
     {
-      Util::Message::stepBlock();
+      //Util::Message::stepBlock();
       for (int y = 0; y < boundaries.height; y++)
       {
         interveningContour(boundaries,thresh,x,y,wr,adj,count);    
@@ -67,7 +66,7 @@ namespace Group
         support(x,y) = map;
       }
     }
-    Util::Message::endBlock();
+    //Util::Message::endBlock();
   }
 
   //
@@ -287,34 +286,34 @@ namespace Group
         {
           if ((xi > oldx) && (yi > oldy))  //down to right
           {
-            intersected = Util::max(boundaries.H(oldx,yi),intersected); 
-            intersected = Util::max(boundaries.H(xi,yi),intersected); 
-            intersected = Util::max(boundaries.V(xi,oldy),intersected); 
-            intersected = Util::max(boundaries.V(xi,yi),intersected); 
+            intersected = std::max(boundaries.H(oldx,yi),intersected); 
+            intersected = std::max(boundaries.H(xi,yi),intersected); 
+            intersected = std::max(boundaries.V(xi,oldy),intersected); 
+            intersected = std::max(boundaries.V(xi,yi),intersected); 
           }
           else if ((xi > oldx) && (yi < oldy)) //up to right
           {
-            intersected = Util::max(boundaries.H(oldx,oldy),intersected); 
-            intersected = Util::max(boundaries.H(xi,oldy),intersected); 
-            intersected = Util::max(boundaries.V(xi,oldy),intersected); 
-            intersected = Util::max(boundaries.V(xi,yi),intersected); 
+            intersected = std::max(boundaries.H(oldx,oldy),intersected); 
+            intersected = std::max(boundaries.H(xi,oldy),intersected); 
+            intersected = std::max(boundaries.V(xi,oldy),intersected); 
+            intersected = std::max(boundaries.V(xi,yi),intersected); 
           }
           else if ((xi < oldx) && (yi > oldy)) //down to left
           {
-            intersected = Util::max(boundaries.H(oldx,yi),intersected); 
-            intersected = Util::max(boundaries.H(xi,yi),intersected); 
-            intersected = Util::max(boundaries.V(oldx,oldy),intersected); 
-            intersected = Util::max(boundaries.V(oldx,yi),intersected); 
+            intersected = std::max(boundaries.H(oldx,yi),intersected); 
+            intersected = std::max(boundaries.H(xi,yi),intersected); 
+            intersected = std::max(boundaries.V(oldx,oldy),intersected); 
+            intersected = std::max(boundaries.V(oldx,yi),intersected); 
           }
           else if ((xi < oldx) && (yi < oldy)) //up to left
           {
-            intersected = Util::max(boundaries.H(oldx,oldy),intersected); 
-            intersected = Util::max(boundaries.H(xi,oldy),intersected); 
-            intersected = Util::max(boundaries.V(oldx,oldy),intersected); 
-            intersected = Util::max(boundaries.V(oldx,yi),intersected); 
+            intersected = std::max(boundaries.H(oldx,oldy),intersected); 
+            intersected = std::max(boundaries.H(xi,oldy),intersected); 
+            intersected = std::max(boundaries.V(oldx,oldy),intersected); 
+            intersected = std::max(boundaries.V(oldx,yi),intersected); 
           }
         }
-        maxpb = Util::max(maxpb,intersected);
+        maxpb = std::max(maxpb,intersected);
         oldx = xi;
         oldy = yi;
 
@@ -399,10 +398,10 @@ namespace Group
 
       // the rectangle of interest, a square with edge of length
       // 2*wr+1 clipped to the image dimensions
-      const int rxa = Util::max(0,x0-wr);
-      const int rya = Util::max(0,y0-wr);
-      const int rxb = Util::min(x0+wr,width-1);
-      const int ryb = Util::min(y0+wr,height-1);
+      const int rxa = std::max(0,x0-wr);
+      const int rya = std::max(0,y0-wr);
+      const int rxb = std::min(x0+wr,width-1);
+      const int ryb = std::min(y0+wr,height-1);
 
       // walk around the boundary, collecting points in the scanline array
       // first walk around the rectangle boundary clockwise for theta = [pi,0]
@@ -557,43 +556,4 @@ namespace Group
       }
   }
 
-
-  // compute the max over lattice energies on a straightline 
-  // path connecting p1 and p2
-/*
-  void interveningContour (const DualLattice& boundaries, const int x1, const int y1, 
-                            const int x2, const int y2, float& icsim)
-  {
-      float maxpb = 0;
-
-      const int width = boundaries.pb.size(0);
-      const int height = boundaries.pb.size(1);
-      const int dx = x2 - x1;
-      const int dy = y2 - y1;
-      const int steps = Util::max (abs (dx), abs (dy));
-      if (steps == 0) { return; }
-
-      const float xincr = (float) dx / (float) steps;
-      const float yincr = (float) dy / (float) steps;
-
-      float x = x1;
-      float y = y1;
-      float olddist = boundaries.dist(x1,y1);
-      for (int k = 0; k < steps; k++)
-      {
-        x += xincr;
-        y += yincr;
-        const int xi = (int) rint (x);
-        const int yi = (int) rint (y);
-        float newdist = boundaries.dist(xi,yi);
-        if ( ((olddist >= 0) && (newdist < 0)) || 
-              ((olddist <= 0) && (newdist > 0)) )
-        {
-          maxpb = Util::max(maxpb, boundaries.pb(xi,yi));
-        }
-        olddist = newdist;
-      }
-      icsim = 1-maxpb;
-  }
-*/
 } //namespace Group
