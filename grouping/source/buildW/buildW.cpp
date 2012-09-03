@@ -34,12 +34,7 @@
 #include <string.h>
 #include <fstream>
 #include <iostream>
-#include "types.hh"
 #include "array.hh"
-#include "util.hh"
-#include "exception.hh"
-#include "string.hh"
-#include "configure.hh"
 #include "smatrix.hh"
 #include "affinity.hh"
 #include "ic.hh"
@@ -61,28 +56,27 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs,const mxArray *prhs[])
     double* H = mxGetPr(prhs[0]);
     int H_h = mxGetN(prhs[0]);
     int H_w = mxGetM(prhs[0]);
-    boundaries.H.resize(H_h,H_w);
+    boundaries.H.create(H_h,H_w,CV_32F);
     for (int i = 0; i < H_h; i++)
     {
       for (int j = 0; j < H_w; j++)
       {
-        boundaries.H(i,j) = H[i*H_w+j];
+        boundaries.H.at<float>(i,j) = H[i*H_w+j];
       } 
     }
     double* V = mxGetPr(prhs[1]);
     int V_h = mxGetN(prhs[1]);
     int V_w = mxGetM(prhs[1]);
-    boundaries.V.resize(V_h,V_w);
+    boundaries.V.create(V_h,V_w,CV_32F);
     for (int i = 0; i < V_h; i++)
     {
       for (int j = 0; j < V_w; j++)
       {
-        boundaries.V(i,j) = V[i*V_w+j];
+        boundaries.V.at<float>(i,j) = V[i*V_w+j];
       } 
     }
-    boundaries.width = boundaries.H.size(0);
-    boundaries.height = boundaries.V.size(1);
-
+    boundaries.width = H_h;
+    boundaries.height = V_w;
 
     Group::SupportMap ic;
     Group::computeSupport(boundaries,dthresh,1.0f,ic);

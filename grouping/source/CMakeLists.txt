@@ -27,7 +27,6 @@ add_library(opencv_gpb SHARED
                               gpb_src/src/math/libraries/lib_image.cc
                               gpb_src/src/math/libraries/lib_signal.cc
                               gpb_src/src/math/geometry/point_2D.cc
-                              gpb_src/src/math/geometry/point_3D.cc
                               gpb_src/src/math/geometry/seg_intersect.cc
                               gpb_src/src/math/geometry/triangle_2D.cc
                               gpb_src/src/math/geometry/triangulation.cc
@@ -48,14 +47,6 @@ add_library(opencv_gpb SHARED
                               buildW/affinity.cc
                               buildW/ic.cc
                               buildW/smatrix.cc
-                              buildW/util/configFileLexer.cc
-                              buildW/util/configure.cc
-                              buildW/util/exception.cc
-                              buildW/util/message.cc
-                              buildW/util/random.cc
-                              buildW/util/string.cc
-                              buildW/util/timer.cc
-                              buildW/util/util.cc
 
                               opencv_gpb/src/watershed.cpp
 )
@@ -69,8 +60,6 @@ include_directories(buildW/util)
 add_library(buildW SHARED buildW/affinity.cc
                    buildW/ic.cc
                    buildW/smatrix.cc
-                   buildW/util/image.cc
 )
 
 target_link_libraries(buildW ${OpenCV_LIBRARIES})
-

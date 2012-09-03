@@ -28,7 +28,6 @@
 #include <memory.h>
 
 #include "array.hh"
-
 #include "ic.hh"
 
 namespace Group
@@ -45,7 +44,7 @@ namespace Group
     int count = 0;
 
     //Util::Message::startBlock(boundaries.width,"computing support");
-    printf("computing support"); //TODO messages where when if any?
+    printf("computing support\n"); //TODO messages where when if any?
     for (int x = 0; x < boundaries.width; x++)
     {
       //Util::Message::stepBlock();
@@ -264,53 +263,53 @@ namespace Group
         {
           if (yi > oldy)
           {
-            intersected = boundaries.H(xi,yi);  
+            intersected = boundaries.H.at<float>(xi,yi);  
           }
           else if (yi < oldy)
           {
-            intersected = boundaries.H(oldx,oldy);  
+            intersected = boundaries.H.at<float>(oldx,oldy);  
           }
         } 
         else if (oldy == yi)
         {
           if (xi > oldx)
           {
-            intersected = boundaries.V(xi,yi);  
+            intersected = boundaries.V.at<float>(xi,yi);  
           }
           else if (xi < oldx)
           {
-            intersected = boundaries.V(oldx,oldy);  
+            intersected = boundaries.V.at<float>(oldx,oldy);  
           }
         }
         else
         {
           if ((xi > oldx) && (yi > oldy))  //down to right
           {
-            intersected = std::max(boundaries.H(oldx,yi),intersected); 
-            intersected = std::max(boundaries.H(xi,yi),intersected); 
-            intersected = std::max(boundaries.V(xi,oldy),intersected); 
-            intersected = std::max(boundaries.V(xi,yi),intersected); 
+            intersected = std::max(boundaries.H.at<float>(oldx,yi),intersected); 
+            intersected = std::max(boundaries.H.at<float>(xi,yi),intersected); 
+            intersected = std::max(boundaries.V.at<float>(xi,oldy),intersected); 
+            intersected = std::max(boundaries.V.at<float>(xi,yi),intersected); 
           }
           else if ((xi > oldx) && (yi < oldy)) //up to right
           {
-            intersected = std::max(boundaries.H(oldx,oldy),intersected); 
-            intersected = std::max(boundaries.H(xi,oldy),intersected); 
-            intersected = std::max(boundaries.V(xi,oldy),intersected); 
-            intersected = std::max(boundaries.V(xi,yi),intersected); 
+            intersected = std::max(boundaries.H.at<float>(oldx,oldy),intersected); 
+            intersected = std::max(boundaries.H.at<float>(xi,oldy),intersected); 
+            intersected = std::max(boundaries.V.at<float>(xi,oldy),intersected); 
+            intersected = std::max(boundaries.V.at<float>(xi,yi),intersected); 
           }
           else if ((xi < oldx) && (yi > oldy)) //down to left
           {
-            intersected = std::max(boundaries.H(oldx,yi),intersected); 
-            intersected = std::max(boundaries.H(xi,yi),intersected); 
-            intersected = std::max(boundaries.V(oldx,oldy),intersected); 
-            intersected = std::max(boundaries.V(oldx,yi),intersected); 
+            intersected = std::max(boundaries.H.at<float>(oldx,yi),intersected); 
+            intersected = std::max(boundaries.H.at<float>(xi,yi),intersected); 
+            intersected = std::max(boundaries.V.at<float>(oldx,oldy),intersected); 
+            intersected = std::max(boundaries.V.at<float>(oldx,yi),intersected); 
           }
           else if ((xi < oldx) && (yi < oldy)) //up to left
           {
-            intersected = std::max(boundaries.H(oldx,oldy),intersected); 
-            intersected = std::max(boundaries.H(xi,oldy),intersected); 
-            intersected = std::max(boundaries.V(oldx,oldy),intersected); 
-            intersected = std::max(boundaries.V(oldx,yi),intersected); 
+            intersected = std::max(boundaries.H.at<float>(oldx,oldy),intersected); 
+            intersected = std::max(boundaries.H.at<float>(xi,oldy),intersected); 
+            intersected = std::max(boundaries.V.at<float>(oldx,oldy),intersected); 
+            intersected = std::max(boundaries.V.at<float>(oldx,yi),intersected); 
           }
         }
         maxpb = std::max(maxpb,intersected);
@@ -405,8 +404,6 @@ namespace Group
 
       // walk around the boundary, collecting points in the scanline array
       // first walk around the rectangle boundary clockwise for theta = [pi,0]
-      //std::cerr << "[" << x0 << "," << y0 << "]  ";
-      //std::cerr << "(" << rxa << "," << rya << ")-(" << rxb << "," << ryb << ")" << std::endl;
       if (x0 > rxa) // left 
       {
         if ((y0 > 0) && (y0 < ryb))
@@ -557,3 +554,4 @@ namespace Group
   }
 
 } //namespace Group
+//std::cerr << "(" << rxa << "," << rya << ")-(" << rxb << "," << ryb << ")" << std::endl;
