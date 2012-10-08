@@ -33,23 +33,6 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <float.h>
-#include <assert.h>
-#include <string.h>
-#include <fstream>
-#include <iostream>
-#include "types.hh"
-#include "array.hh"
-#include "util.hh"
-#include "exception.hh"
-#include "string.hh"
-#include "configure.hh"
-#include "smatrix.hh"
-#include "affinity.hh"
-#include "ic.hh"
 #include "mex.h"
 
 #include "MxArray.hpp"
