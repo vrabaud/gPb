@@ -199,10 +199,17 @@ void pb_parts_final_selected(matrix<> L, matrix<> a, matrix <> b,
       textons = lib_image::border_trim_2D(matrix<>(t_assign), border);
 
       /* compute bg at each radius */
-      cout << "computing bg'ss\n";
+      cout << "computing bg's\n";
       bg_r3 = lib_image::hist_gradient_2D(Lq, r_bg[0], n_ori, bg_smooth_kernel);
       bg_r5 = lib_image::hist_gradient_2D(Lq, r_bg[1], n_ori, bg_smooth_kernel);
       bg_r10 = lib_image::hist_gradient_2D(Lq, r_bg[2], n_ori, bg_smooth_kernel);
+
+      for (unsigned long n = 0; n < n_ori; n++)
+      {
+          (*bg_r3)[n] = lib_image::border_trim_2D((*bg_r3)[n], border);
+          (*bg_r5)[n] = lib_image::border_trim_2D((*bg_r5)[n], border);
+          (*bg_r10)[n] = lib_image::border_trim_2D((*bg_r10)[n], border);
+      }
 
 
       /* compute cga at each radius */
@@ -211,17 +218,38 @@ void pb_parts_final_selected(matrix<> L, matrix<> a, matrix <> b,
       cga_r10 = lib_image::hist_gradient_2D(aq, r_cg[1], n_ori, cga_smooth_kernel);
       cga_r20 = lib_image::hist_gradient_2D(aq, r_cg[2], n_ori, cga_smooth_kernel);
 
+      for (unsigned long n = 0; n < n_ori; n++)
+      {
+          (*cga_r5)[n] = lib_image::border_trim_2D((*cga_r5)[n], border);
+          (*cga_r10)[n] = lib_image::border_trim_2D((*cga_r10)[n], border);
+          (*cga_r20)[n] = lib_image::border_trim_2D((*cga_r20)[n], border);
+      }
+
       /* compute cgb at each radius */
       cout << "computing cgb's\n";
       cgb_r5 = lib_image::hist_gradient_2D(bq, r_cg[0], n_ori, cgb_smooth_kernel);
       cgb_r10 = lib_image::hist_gradient_2D(bq, r_cg[1], n_ori, cgb_smooth_kernel);
       cgb_r20 = lib_image::hist_gradient_2D(bq, r_cg[2], n_ori, cgb_smooth_kernel);
 
+      for (unsigned long n = 0; n < n_ori; n++)
+      {
+          (*cgb_r5)[n] = lib_image::border_trim_2D((*cgb_r5)[n], border);
+          (*cgb_r10)[n] = lib_image::border_trim_2D((*cgb_r10)[n], border);
+          (*cgb_r20)[n] = lib_image::border_trim_2D((*cgb_r20)[n], border);
+      }
+
       /* compute tg at each radius */
       cout << "computing tg's\n";
       tg_r5 = lib_image::hist_gradient_2D(t_assign, r_tg[0], n_ori);
       tg_r10 = lib_image::hist_gradient_2D(t_assign, r_tg[1], n_ori);
       tg_r20 = lib_image::hist_gradient_2D(t_assign, r_tg[2], n_ori);
+
+      for (unsigned long n = 0; n < n_ori; n++)
+      {
+          (*tg_r5)[n] = lib_image::border_trim_2D((*tg_r5)[n], border);
+          (*tg_r10)[n] = lib_image::border_trim_2D((*tg_r10)[n], border);
+          (*tg_r20)[n] = lib_image::border_trim_2D((*tg_r20)[n], border);
+      }
 }
 
 
@@ -234,13 +262,11 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
     /* parameters - binning and smoothing */
     unsigned long n_ori       = 8;                     /* number of orientations */
-    unsigned long border      = 30;                    /* border pixels */
 
     /* get image */
     matrix<> L = to_matrix(prhs[0]);
     matrix<> a = to_matrix(prhs[1]);
     matrix<> b = to_matrix(prhs[2]);
-
 
     /* init vars */
     matrix<> textons;
@@ -251,56 +277,56 @@ void mexFunction(int nlhs, mxArray *plhs[],
     pb_parts_final_selected(L, a, b, textons, bg_r3, bg_r5, bg_r10, cga_r5,
             cga_r10, cga_r20, cgb_r5, cgb_r10, cgb_r20, tg_r5, tg_r10, tg_r20);
 
-        /*return*/
+    /*return*/
     plhs[0] = to_mxArray(textons);
     unsigned long count = 1;
 
     mxArray* m = mxCreateCellMatrix(static_cast<int>(n_ori), 1);
     for (unsigned long n = 0; n < n_ori; n++)
-        mxSetCell(m, static_cast<int>(n), to_mxArray(lib_image::border_trim_2D((*bg_r3)[n], border)));
+        mxSetCell(m, static_cast<int>(n), to_mxArray((*bg_r3)[n]));
     plhs[count++] = m;
     mxArray* m1 = mxCreateCellMatrix(static_cast<int>(n_ori), 1);
     for (unsigned long n = 0; n < n_ori; n++)
-        mxSetCell(m1, static_cast<int>(n), to_mxArray(lib_image::border_trim_2D((*bg_r5)[n], border)));
+        mxSetCell(m1, static_cast<int>(n), to_mxArray((*bg_r5)[n]));
     plhs[count++] = m1;
     mxArray* m2 = mxCreateCellMatrix(static_cast<int>(n_ori), 1);
     for (unsigned long n = 0; n < n_ori; n++)
-        mxSetCell(m2, static_cast<int>(n), to_mxArray(lib_image::border_trim_2D((*bg_r10)[n], border)));
+        mxSetCell(m2, static_cast<int>(n), to_mxArray((*bg_r10)[n]));
     plhs[count++] = m2;
     mxArray* m3 = mxCreateCellMatrix(static_cast<int>(n_ori), 1);
     for (unsigned long n = 0; n < n_ori; n++)
-        mxSetCell(m3, static_cast<int>(n), to_mxArray(lib_image::border_trim_2D((*cga_r5)[n], border)));
+        mxSetCell(m3, static_cast<int>(n), to_mxArray((*cga_r5)[n]));
     plhs[count++] = m3;
     mxArray* m4 = mxCreateCellMatrix(static_cast<int>(n_ori), 1);
     for (unsigned long n = 0; n < n_ori; n++)
-        mxSetCell(m4, static_cast<int>(n), to_mxArray(lib_image::border_trim_2D((*cga_r10)[n], border)));
+        mxSetCell(m4, static_cast<int>(n), to_mxArray((*cga_r10)[n]));
     plhs[count++] = m4;
     mxArray* m5 = mxCreateCellMatrix(static_cast<int>(n_ori), 1);
     for (unsigned long n = 0; n < n_ori; n++)
-        mxSetCell(m5, static_cast<int>(n), to_mxArray(lib_image::border_trim_2D((*cga_r20)[n], border)));
+        mxSetCell(m5, static_cast<int>(n), to_mxArray((*cga_r20)[n]));
     plhs[count++] = m5;
     mxArray* m6 = mxCreateCellMatrix(static_cast<int>(n_ori), 1);
     for (unsigned long n = 0; n < n_ori; n++)
-        mxSetCell(m6, static_cast<int>(n), to_mxArray(lib_image::border_trim_2D((*cgb_r5)[n], border)));
+        mxSetCell(m6, static_cast<int>(n), to_mxArray((*cgb_r5)[n]));
     plhs[count++] = m6;
     mxArray* m7 = mxCreateCellMatrix(static_cast<int>(n_ori), 1);
     for (unsigned long n = 0; n < n_ori; n++)
-        mxSetCell(m7, static_cast<int>(n), to_mxArray(lib_image::border_trim_2D((*cgb_r10)[n], border)));
+        mxSetCell(m7, static_cast<int>(n), to_mxArray((*cgb_r10)[n]));
     plhs[count++] = m7;
     mxArray* m8 = mxCreateCellMatrix(static_cast<int>(n_ori), 1);
     for (unsigned long n = 0; n < n_ori; n++)
-        mxSetCell(m8, static_cast<int>(n), to_mxArray(lib_image::border_trim_2D((*cgb_r20)[n], border)));
+        mxSetCell(m8, static_cast<int>(n), to_mxArray((*cgb_r20)[n]));
     plhs[count++] = m8;
     mxArray* m9 = mxCreateCellMatrix(static_cast<int>(n_ori), 1);
     for (unsigned long n = 0; n < n_ori; n++)
-        mxSetCell(m9, static_cast<int>(n), to_mxArray(lib_image::border_trim_2D((*tg_r5)[n], border)));
+        mxSetCell(m9, static_cast<int>(n), to_mxArray((*tg_r5)[n]));
     plhs[count++] = m9;
     mxArray* m10 = mxCreateCellMatrix(static_cast<int>(n_ori), 1);
     for (unsigned long n = 0; n < n_ori; n++)
-        mxSetCell(m10, static_cast<int>(n), to_mxArray(lib_image::border_trim_2D((*tg_r10)[n], border)));
+        mxSetCell(m10, static_cast<int>(n), to_mxArray((*tg_r10)[n]));
     plhs[count++] = m10;
     mxArray* m11 = mxCreateCellMatrix(static_cast<int>(n_ori), 1);
     for (unsigned long n = 0; n < n_ori; n++)
-        mxSetCell(m11, static_cast<int>(n), to_mxArray(lib_image::border_trim_2D((*tg_r20)[n], border)));
+        mxSetCell(m11, static_cast<int>(n), to_mxArray((*tg_r20)[n]));
     plhs[count++] = m11;
 }
