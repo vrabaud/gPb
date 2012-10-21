@@ -1,4 +1,5 @@
 #include <iostream>
+#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <cv.h>
@@ -6,39 +7,37 @@
 using namespace cv;
 using namespace std;
 
-typedef Complex<double> C;
-
 void HilbertTransform( const Mat & input, Mat & output)
 {
-    if (input.depth() != CV_64F)
-    {
-        std::cerr << "Type not implemented in HilbertTransform: " << input.depth() << std::endl;
-    }
+    CV_Assert( input.depth() == CV_64F );
 
-    //Hilbert transform is made in frequency domain
+    // Hilbert transform is made in frequency domain
     Mat f_transform;
-    dft(input, f_transform, DFT_COMPLEX_OUTPUT);
+    dft(input, f_transform);
 
-    //Fix dft output
+    double t;
     int n = input.rows;
-    for (int i = n-1; 2*i > n; i--)
+
+    // multilply positive frequences by i (the following assumes compact fft
+    // output format
+    for (int i = 2; i < n; i+=2)
     {
-        f_transform.at<C>(i) = (f_transform.at<C>(n-i)).conj();
+        t = -f_transform.at<double>(i);
+        f_transform.at<double>(i) = (f_transform.at<double>(i-1));
+        f_transform.at<double>(i-1) = t;
     }
 
-    //multiple positive frequences by i and negative by -i. Leave zero and Nyquist (if exists) frequences unchanged. 
-    double one = 1;
-    double zer = 0;
-    for (int i = 1; 2*i < n; i++)
+    // zero out zero frequency
+    f_transform.at<double>(0) = 0;
+
+    // and Nyquist frequency, if it exists.
+    if ( n%2 == 0 )
     {
-        f_transform.at<C>(i) = (f_transform.at<C>(i)) * (Complex<double>(0,1));
-        f_transform.at<C>(n-i) = (f_transform.at<C>(n-i)) * (Complex<double>(0,-1));
+        f_transform.at<double>(n-1) = 0;
     }
 
-    dft(f_transform, output, DFT_REAL_OUTPUT + DFT_INVERSE + DFT_SCALE);
+    idft(f_transform, output, DFT_SCALE);
 }
-
-
 
 Mat getGaussianKernel2( int n, double sigma, int derivative, int ktype )
 {
@@ -88,172 +87,108 @@ Mat getGaussianKernel2( int n, double sigma, int derivative, int ktype )
 }
 
 
-int main()
+void textons(const Mat & image, Mat & text)
 {
-    Mat dft = getGaussianKernel2(7, 2.0, 0, CV_64F);
-    cout << dft << "\n";
-    Mat hil;
-    HilbertTransform(dft, hil);
-    cout << hil << "\n";
 
-    Mat M, N;
-    M = (Mat_<double>(7,1) << 1, 0, 0, 1, 0, 0, 1);
-    HilbertTransform(M, N);
-    cout << N << "\n";
+    unsigned long n_ori       = 8;                     /* number of orientations */
+    double sigma_tg_filt_sm   = 2.0;                   /* sigma for small tg filters */
+    double sigma_tg_filt_lg   = std::sqrt(2) * 2.0;   /* sigma for large tg filters */
 
-    /*
-    Mat M, D, N;
-    int n = 7;
+    // convert to grayscale
+    //Mat gray;
+    //cvtColor(image, gray, CV_RGB2GRAY);
 
-    M = (Mat_<double>(n,1) << 1, 0, 0, 1, 0, 0, 1);
-    cout << M << "\n";
+    // compute simplest of the non-simple gaussians 
+    int support = 9;
+    double xsigma = sigma_tg_filt_sm/std::sqrt(2);
+    double ysigma = sigma_tg_filt_sm/(3*std::sqrt(2));
 
-    dft(M, D, DFT_COMPLEX_OUTPUT);
-    cout << D << "\n";
+    Mat xgaussian = getGaussianKernel2(support, xsigma, 2, CV_64F);
+    Mat ygaussian; 
+    HilbertTransform(getGaussianKernel2(support, ysigma, 2, CV_64F),
+                     ygaussian);
 
-    fix dft
-    for (int i = n-1; 2*i > n; i--)
+    Mat gaussian2d(support, support, CV_64F);
+    for (int i = 0; i < support; i++)
     {
-        D.at<C>(i) = (D.at<C>(n-i)).conj();
+        for (int j = 0; j < support; j++)
+        {
+            gaussian2d.at<double>(i,j) = xgaussian.at<double>(i) * ygaussian.at<double>(j);
+        }
     }
-    cout << D << "\n";
 
-    compute inverse
-    dft(D, N, DFT_INVERSE + DFT_SCALE + DFT_COMPLEX_OUTPUT);
-    cout << N << "\n";
+    double angle;
+    Point2f center(4.f, 4.f);
+    Size2i size(support, support);
+    Mat gaussian2di(support, support, CV_8U);
 
-    D.at<double>(8) = 2;
-    cout << D << "\n";
-    dft(D, N, DFT_INVERSE + DFT_SCALE + DFT_COMPLEX_OUTPUT);
-    cout << N << "\n";*/
-    return 0;
+    for (int i = 0; i < n_ori; i++)
+    {
+        angle = (360/n_ori)*i;
+        Mat rotation = getRotationMatrix2D(center, angle, 1.0);
+        Mat rotated;
+        warpAffine(gaussian2d, rotated, rotation, size);
+
+        rotated.convertTo(gaussian2di, CV_8U,100,10);
+        cout <<gaussian2di << "\n";
+    }
+
+    /* compute texton filter set */
+    //std::list<cv:Mat> filters_small;
+    //for (int i = 1; i < n_ori, i++)
+    //{
+
+
+
+
+
+    /* compute texton filter set */
+    //auto_collection< matrix<>, array_list< matrix<> > > filters_small = 
+    //    lib_image::texton_filters(n_ori, sigma_tg_filt_sm);
+    //auto_collection< matrix<>, array_list< matrix<> > > filters_large = 
+    //    lib_image::texton_filters(n_ori, sigma_tg_filt_lg);
+    //array_list< matrix<> > filters;
+    //filters.add(*filters_small);
+    //filters.add(*filters_large);
+
+    /* compute textons */
+    //auto_collection< matrix<>, array_list< matrix<> > > temtons;
+    //matrix<unsigned long> t_assign = 
+    //    lib_image::textons(gray, filters, temtons, 64);
+    //t_assign = matrix<unsigned long>(
+    //        lib_image::border_mirror_2D(
+    //            lib_image::border_trim_2D(matrix<>(t_assign), border), border
+    //            )
+    //        );
+
+    /* return textons */
+    //textons = lib_image::border_trim_2D(matrix<>(t_assign), border);
 }
 
 
+int main()
+{
+    Mat M = getGaussianKernel2(7, 2.0, 0, CV_64F);
+    Mat N = getGaussianKernel2(7, 2.0, 0, CV_64F);
+    textons(M,N);
+}
 
-//void textons_4real(const cv::Mat & image, cv::Mat & textons)
-//{
-//
-//    unsigned long n_ori       = 8;                     /* number of orientations */
-//    double sigma_tg_filt_sm   = 2.0;                   /* sigma for small tg filters */
-//    double sigma_tg_filt_lg   = math::sqrt(2) * 2.0;   /* sigma for large tg filters */
-//
-//    /* convert to grayscale */
-//    cv::Mat gray;
-//    cv::cvtColor(image, gray, CV_RGB2GRAY);
-//
-//    /*compute simplest of the non-simple gaussians*/
-//    cv::Mat filter;
-//
-//    /* compute texton filter set */
-//    std::list<cv:Mat> filters_small;
-//    for (int i = 1; i < n_ori, i++)
-//    {
-//
-//
-//
-//
-//
-//    /* compute texton filter set */
-//    auto_collection< matrix<>, array_list< matrix<> > > filters_small = 
-//        lib_image::texton_filters(n_ori, sigma_tg_filt_sm);
-//    auto_collection< matrix<>, array_list< matrix<> > > filters_large = 
-//        lib_image::texton_filters(n_ori, sigma_tg_filt_lg);
-//    array_list< matrix<> > filters;
-//    filters.add(*filters_small);
-//    filters.add(*filters_large);
-//
-//    /* compute textons */
-//    auto_collection< matrix<>, array_list< matrix<> > > temtons;
-//    matrix<unsigned long> t_assign = 
-//        lib_image::textons(gray, filters, temtons, 64);
-//    t_assign = matrix<unsigned long>(
-//            lib_image::border_mirror_2D(
-//                lib_image::border_trim_2D(matrix<>(t_assign), border), border
-//                )
-//            );
-//
-//    /* return textons */
-//    textons = lib_image::border_trim_2D(matrix<>(t_assign), border);
-//}
-//
 //auto_collection< matrix<>, array_list< matrix<> > > lib_image::texton_filters(
 //        unsigned long n_ori,
 //        double        sigma)
 //{
-//    /* allocate collection to hold filters */
-//    auto_collection< matrix<>, array_list< matrix<> > > filters(
-//            new array_list< matrix<> >()
-//            );
-//    /* get even and odd-symmetric filter sets */
-//    auto_collection< matrix<>, array_list< matrix<> > > filters_even;
-//    auto_collection< matrix<>, array_list< matrix<> > > filters_odd;
 //    lib_image::oe_filters(n_ori, sigma, filters_even, filters_odd);
-//    /* add even and odd-symmetric filters to collection */
-//    filters->add(*filters_even); filters_even.release();
-//    filters->add(*filters_odd);  filters_odd.release();
-//    /* compute center surround filter */
-//    unsigned long support = static_cast<unsigned long>(math::ceil(3*sigma));
 //    matrix<> f_cs = lib_image::gaussian_cs_2D(
-//            sigma, sigma, 0, M_SQRT2l, support, support
-//            );
-//    /* add center surround filter to collection */
-//    auto_ptr< matrix<> > f_ptr(new matrix<>());
-//    matrix<>::swap(f_cs, *f_ptr);
-//    filters->add(*f_ptr);
-//    f_ptr.release();
-//    return filters;
-//}
+//            sigma, sigma, 0, M_SQRT2l, support, support);
 //
-////Tells oe_filters_odd and oe_filters_even to create filters
 //void lib_image::oe_filters(
 //   unsigned long                                        n_ori,
 //   double                                               sigma,
 //   auto_collection< matrix<>, array_list< matrix<> > >& filters_even,
 //   auto_collection< matrix<>, array_list< matrix<> > >& filters_odd)
 //{
-//   /* runnable class for creating oe filters */
-//   class oe_filters_creator : public runnable {
-//   public:
-//      /*
-//       * Constructor.
-//       */
-//      explicit oe_filters_creator(
-//         unsigned long                                        n_ori,
-//         double                                               sigma,
-//         bool                                                 even_or_odd,
-//         auto_collection< matrix<>, array_list< matrix<> > >& filters)
-//       : _n_ori(n_ori),
-//         _sigma(sigma),
-//         _even_or_odd(even_or_odd),
-//         _filters(filters)
-//      { }
-//
-//      /*
-//       * Destructor.
-//       */
-//      virtual ~oe_filters_creator() { /* do nothing */ }
-//
-//      /*
-//       * Create the filter set.
-//       */
-//      virtual void run() {
-//         _filters = _even_or_odd ?
 //            lib_image::oe_filters_odd(_n_ori, _sigma)
 //          : lib_image::oe_filters_even(_n_ori, _sigma);
-//      }
-//
-//   protected:
-//      unsigned long                                        _n_ori;
-//      double                                               _sigma;
-//      bool                                                 _even_or_odd;
-//      auto_collection< matrix<>, array_list< matrix<> > >& _filters;
-//   };
-//   /* create oe filters */
-//   oe_filters_creator f_even_creator(n_ori, sigma, false, filters_even);
-//   oe_filters_creator f_odd_creator(n_ori, sigma, true, filters_odd);
-//   child_thread::run(f_even_creator, f_odd_creator);
-//}
 //
 //auto_collection< matrix<>, array_list< matrix<> > > lib_image::oe_filters_even(
 //   unsigned long n_ori,
