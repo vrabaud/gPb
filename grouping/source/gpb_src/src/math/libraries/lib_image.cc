@@ -6139,6 +6139,7 @@ void lib_image::contour_set::subdivide_global() {
    /* create comparison functor for sorting edges by vertex id */
    class edge_compare : public comparable_functor<contour_edge> {
    public:
+      edge_compare(){};
       int operator()(const contour_edge& e0, const contour_edge& e1) const {
          bool v0_cmp = (e0.vertex_start->id < e0.vertex_end->id);
          bool v1_cmp = (e1.vertex_start->id < e1.vertex_end->id);
