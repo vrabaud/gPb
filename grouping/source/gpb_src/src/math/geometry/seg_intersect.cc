@@ -109,6 +109,7 @@ seg_intersect::seg_intersect(
    /* create comparison functor for event queue */
    class event_compare : public comparable_functor<vrtx> {
    public:
+      event_compare(){};
       int operator()(const vrtx& v0, const vrtx& v1) const {
          return v0.p.compare_to(v1.p);
       }
