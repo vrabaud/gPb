@@ -44,20 +44,18 @@ savepwd=pwd;
 % build the SBA mex file
 cd('source/gpb_src/');
 
-% Octave on Linux
-%mkoctfile --mex ./matlab/recognition/mex_category_db.cc  -I./include
-%mkoctfile --mex ./matlab/recognition/mex_clusterer.cc  -I./include
+isOctave = exist('OCTAVE_VERSION', 'builtin') ~= 0;
 
-%mkoctfile --mex ./matlab/segmentation/mex_contour.cc  -I./include
-mkoctfile --mex ./matlab/segmentation/mex_contour_sides.cc  -I./include
-%mkoctfile --mex ./matlab/segmentation/mex_line_inds.cc  -I./include
-mkoctfile --mex ./matlab/segmentation/mex_nonmax_oriented.cc  -I./include -L./ -L../../lib -lopencv_gpb
-%mkoctfile --mex ./matlab/segmentation/mex_oe.cc  -I./include
-%mkoctfile --mex ./matlab/segmentation/mex_pb.cc  -I./include
-mkoctfile --mex ./matlab/segmentation/mex_pb_parts_final_selected.cc -I./include -L../../lib -lopencv_gpb
-%mkoctfile --mex ./matlab/segmentation/mex_pb_parts_lg.cc  -I./include
-%mkoctfile --mex ./matlab/segmentation/mex_pb_parts_sm.cc  -I./include
-%mkoctfile --mex ./matlab/segmentation/mex_textons.cc  -I./include
+if isOctave
+    % Octave on Linux
+    mkoctfile --mex ./matlab/segmentation/mex_contour_sides.cc  -I./include
+    mkoctfile --mex ./matlab/segmentation/mex_nonmax_oriented.cc  -I./include -L./ -L../../lib -lopencv_gpb
+    mkoctfile --mex ./matlab/segmentation/mex_pb_parts_final_selected.cc -I./include -L../../lib -lopencv_gpb
+else
+    mex ./matlab/segmentation/mex_contour_sides.cc  -I./include
+    mex ./matlab/segmentation/mex_nonmax_oriented.cc  -I./include -L./ -L../../lib -lopencv_gpb
+    mex ./matlab/segmentation/mex_pb_parts_final_selected.cc -I./include -L../../lib -lopencv_gpb
+end
 
 system('mv *mex ../../lib')
 cd(savepwd);
@@ -65,7 +63,11 @@ cd(savepwd);
 % process savgol
 cd('source/savgol/');
 
-mkoctfile --mex ./savgol_border.cpp
+if isOctave
+    mkoctfile --mex ./savgol_border.cpp
+else
+    mex ./savgol_border.cpp
+end
 
 system('mv *mex ../../lib')
 cd(savepwd);
@@ -73,7 +75,11 @@ cd(savepwd);
 % process buildW
 cd('source/buildW/');
 
-mkoctfile --mex ./buildW.cpp -I./util -L../../lib -lopencv_gpb
+if isOctave
+    mkoctfile --mex ./buildW.cpp -I./util -L../../lib -lopencv_gpb
+else
+    mex ./buildW.cpp -I./util -L../../lib -lopencv_gpb
+end
 
 system('mv *mex ../../lib')
 cd(savepwd);
@@ -82,7 +88,11 @@ cd(savepwd);
 % process custom mex files
 cd('source/opencv_gpb/');
 
-mkoctfile --mex ./mex/watershed.cpp ./mex/MxArray.cpp -I./src -I../buildW/util/ -I../buildW -I/opt/ros/fuerte/include -L../../lib -L/opt/ros/fuerte/lib -lopencv_gpb -lopencv_core -lopencv_imgproc -L../build -lbuildW -lopencv_gpb
+if isOctave
+    mkoctfile --mex ./mex/watershed.cpp ./mex/MxArray.cpp -I./src -I../buildW/util/ -I../buildW -I/opt/ros/fuerte/include -L../../lib -L/opt/ros/fuerte/lib -lopencv_gpb -lopencv_core -lopencv_imgproc -L../build -lbuildW -lopencv_gpb
+else
+    mex ./mex/watershed.cpp ./mex/MxArray.cpp -I./src -I../buildW/util/ -I../buildW -I/opt/ros/fuerte/include -L../../lib -L/opt/ros/fuerte/lib -lopencv_gpb -lopencv_core -lopencv_imgproc -L../build -lbuildW -lopencv_gpb
+end
 
 system('mv *.mex ../../lib')
 cd(savepwd);
@@ -91,7 +101,11 @@ cd(savepwd);
 % process ucm
 cd('source/ucm/');
 
-mkoctfile --mex ./ucm_mean_pb.cpp -L../../lib -lopencv_gpb
+if isOctave
+    mkoctfile --mex ./ucm_mean_pb.cpp -L../../lib -lopencv_gpb
+else
+    mex ./ucm_mean_pb.cpp -L../../lib -lopencv_gpb
+end
 
 system('mv *mex ../../lib')
 cd(savepwd);
